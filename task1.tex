@@ -1,0 +1,111 @@
+%	Copyright (C) 2013 Systems Engineering Group
+%
+%	CHANGELOG:
+%       2005-10-10 - corrected and extended. 
+%       2013-01-28 - adjusted sections and explanation
+%
+
+
+\documentclass[a4paper,10pt,twoside]{article}
+\pagestyle{headings}
+\usepackage{a4wide}
+\usepackage[colorlinks,hyperfigures,backref,bookmarks,draft=false]{hyperref}
+
+
+\begin{document}
+
+\section{Preliminaries}
+For my project I use a mysql database in a Python environment. To run the file it might be necessary to download and install the local mysql server (\url{}) and a bridge which allows Python to connect with the database (\url{}). Furtheron Python should be usable.\\
+To execute the programm the data file u.data should be placed in the same directory as recommender.py and the mysql server settings ( host, username, password, database ) in the recommender.py file should be adapted.\\
+usable variables:
+
+\section{Tasks}
+\subsection{Task 1}
+k=3
+
+
+cosine similarity is a collaborative filtering method, dependency on ratings of other users
+-> recommendations based on insufficient ratings (here only 3)
+-> for a recommendation are pairs of the requested movies voted by the same user required.
+-> unlikely with a k of 3 rating to get such a pair -> calculation of similarity is nonense because alsways similar (have a high cosine similarity)
+-> as well as a lack of higher variety in ratings which relativize perculiar similarity ratings
+
+-> similarity is 1, unsimilarity -1
+
+1. Examining the results
+-> For comparison we use the film with movieID 1: "ToyStory", it is a childrens adventure movie, and the second movie with movieID 2: "GoldenEye", which is a mature action and thriller movie.
+Very unsimilar movies
+
+RMSE interpretation ********!!
+\\
+
+\begin{tabular}{cc}
+	\textbf{k} & \textbf{similarity between movie 1 and 2} \\
+	2,\textbf{3},4 & 1.0 \\
+	5,6 & 0.294394290479\\
+	7& 0.307155766013\\
+	8,9 & -0.682100834378\\
+	\textbf{10} & -0.768085788018\\
+	20 & -0.811099458037\\
+	* & -0.950649223953\\
+\end{tabular} \\
+As expected the more ratings the calculation includes (through k), the lower becomes the similarity
+for k = 3 similarity of these movies is 1, which is the highest similarity possible.
+
+2. examining the formula for cosine similarity
+restricting the datasets to the first k entries for each user has affects on ...
+
+\begin{enumerate}
+	\item ... the average of all ratings of each user. With k=3 the average rating is the sum of the ratings divided by 3.
+	\item ...amount of movies i and j which were both rated by 
+\end{enumerate}
+
+
+
+\subsection{Task 2}
+cold start problem
+
+\subsection{Task 3}
+scaling possible? does my solution scale?
+
+\begin{enumerate}
+	\item \textbf{Using MySQL:} \\
+	\begin{enumerate}
+		\item 	
+		mysql database can work with many entries, slower with bigger size of data sets
+		new calculation of average of all ratings of each user always necessary: more users/movies/ratings-> more data to process
+		alternatives: hadoop? better PC
+		
+		\item use of MEDIUMINT with 	8388607 different primary key entries possible
+		instead use of BIGINT with 9223372036854775807 different primary keys applicable for more movies
+		or unsigned BIGINT with 18446744073709551615.
+		
+		\item db is build in beginning of programm
+		possible to turn off and to calculate with the already existing DB
+		in case of changes on the db initialisation algorithm mandatory to turn on.
+		avoids unnecessary db accesses, more time effective
+		
+		\item addition of more data to the mysql library is easily possible. Use of the same algorith possible.
+		
+		\item hard to detect bugs in code or SQL statements while operating with DB and to verify the requests made. the impact is not easily detectable and temporary request are necessary to detect Changes in DB. With bigger DB might get even more confusing
+	\end{enumerate}	
+	
+	
+	\item \textbf{Using Python:} \\
+	\begin{enumerate}
+		\item 	open the file with python function ****. 
+		in case of a larger file with more data sets function necessary which can open bigger files
+	
+		\item holding huge variables in an object 
+	
+	
+	\end{enumerate}		
+
+	
+\end{enumerate}
+
+
+\bibliographystyle{alpha}
+\bibliography{handin} 
+
+\end{document}
