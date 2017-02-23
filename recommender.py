@@ -2,7 +2,7 @@ import re
 import MySQLdb
 
 requireDBInit = False #True for first DB init
-testSetK = 0    # size of table test_votes
+testSetK = 0   # size of table test_votes
 dataFile = "u.data"
 connection = MySQLdb.connect(
      host="localhost",  # your host, usually localhost
@@ -14,8 +14,16 @@ cursor = connection.cursor()
 
 
 def main():
-    if requireDBInit: initDB()
-    print calcPrediction(1, 2, "user_votes")
+    if requireDBInit:
+        print "rebuilding DB"
+        initDB()
+    else:
+        print "work with existing DB"
+
+    print calcCosSimilarity(62, 66, "user_votes") #movie1ID, movie2ID, table
+    print calcPrediction(5, 62, "user_votes") #  userID, movieID, table
+
+
 
     #end db connection
     connection.commit()
@@ -35,7 +43,7 @@ def initDB():
             rating MEDIUMINT
         );"""
     )
-    print "created new table user_votes"
+    print " -> created new table user_votes"
 
     # build data set for user_votes
     with open(dataFile) as file:
@@ -46,7 +54,7 @@ def initDB():
                 VALUES ( %s , %s , %s );""",
                 (line[0], line[1], line[2])
             )
-    print "wrote data set into user_votes"
+    print " -> wrote data set into user_votes"
 
     # create table test_votes
     cursor.execute("""
@@ -57,7 +65,7 @@ def initDB():
             rating MEDIUMINT
         );"""
     )
-    print "created new table test_votes"
+    print " -> created new table test_votes"
 
     #build data set for test_votes using K
     if testSetK!=0:
@@ -88,7 +96,7 @@ def initDB():
             cursor.execute(query[:-1])
 
 
-    print "moved data from user_votes to test_votes"
+    print " -> moved data from user_votes to test_votes"
 
 
 def checkForOldTable(table):
@@ -100,7 +108,7 @@ def checkForOldTable(table):
     if cursor.fetchone()[0] == 1:
         query = "DROP TABLE %s" % (table)
         cursor.execute(query)
-        print "deleted old table" + table
+        print " -> deleted old table " + table
 
 
 def calcCosSimilarity(movie1ID, movie2ID, table):
@@ -110,8 +118,8 @@ def calcCosSimilarity(movie1ID, movie2ID, table):
         (SQRT(SUM(dim1*dim1)) * SQRT(SUM(dim2*dim2)))
     FROM (
             SELECT
-                mov1.movieID as mov1ID,
-                mov2.movieID as mov2ID,
+                mov1.movieID as movie1ID,
+                mov2.movieID as movie2ID,
                 mov1.rating - uAvg.avgRating as dim1,
                 mov2.rating - uAvg.avgRating as dim2
             FROM
@@ -129,48 +137,32 @@ def calcCosSimilarity(movie1ID, movie2ID, table):
             WHERE mov1.movieID= %(movie2ID)s AND mov2.movieID= %(movie1ID)s
             GROUP BY mov1.userID, mov2.userID
     ) as result_table
-    GROUP BY mov1ID, mov2ID
+    GROUP BY movie1ID, movie2ID
     """ % { "table": table, "movie1ID": movie1ID, "movie2ID": movie2ID}
     cursor.execute(query)
     cos = cursor.fetchone()
     if cos is not None:
-        print "calculated cos for %s, %s is %s" % (movie1ID, movie2ID, cos[0])
         return cos[0]
     else:
         print "no result"
 
-def calcPrediction(movieID, userID, table):
-    query = """
-    SELECT
-        SUM(dim1*dim2) /
-        (SQRT(SUM(dim1*dim1)) * SQRT(SUM(dim2*dim2)))
-    FROM (
-            SELECT
-                mov1.movieID as mov1ID,
-                mov2.movieID as mov2ID,
-                mov1.rating - uAvg.avgRating as dim1,
-                mov2.rating - uAvg.avgRating as dim2
-            FROM
-                user_votes as mov1
-            INNER JOIN %(table)s as mov2
-            ON mov1.userID=mov2.userID AND mov1.movieID<>mov2.movieID
-
-            INNER JOIN
-                (SELECT userID, AVG(rating) AS avgRating
-                FROM user_votes
-                GROUP BY userID
-                ) AS uAvg
-            ON mov1.userID = uAvg.userID
-
-            WHERE mov1.userID=%(userID)s
-            GROUP BY mov1.userID, mov2.userID
-    ) as result_table
-    GROUP BY mov1ID, mov2ID
-    """ % { "table": table, "userID": userID}
+def calcPrediction(userID, movieID, table):
+    query="Select movieID, rating from %s where userId=%s" %  (table, userID)
     cursor.execute(query)
-    cos = cursor.fetchall()
-    for line in cos:
-        print "calculated cos for %s" % (line[0])
+    result=cursor.fetchall()
+    denominator = 0
+    numerator = 0
+    for line in result:
+        cos= calcCosSimilarity(movieID, line[0], table)
+        if line[1] != None and cos != None:
+            numerator += line[1] * cos
+            denominator += abs(cos)
+
+
+    #normalisation
+    return round(numerator / denominator *2/5+3)
+
+def calcRMSE():
 
 
 main()

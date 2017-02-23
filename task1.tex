@@ -1,36 +1,77 @@
-%	Copyright (C) 2013 Systems Engineering Group
-%
-%	CHANGELOG:
-%       2005-10-10 - corrected and extended. 
-%       2013-01-28 - adjusted sections and explanation
-%
-
-
-\documentclass[a4paper,10pt,twoside]{article}
+\documentclass[a4paper,12pt,twoside]{article}
 \pagestyle{headings}
 \usepackage{a4wide}
+\usepackage{mathtools}
 \usepackage[colorlinks,hyperfigures,backref,bookmarks,draft=false]{hyperref}
 
 
 \begin{document}
+\section{Introduction}
+Through the growing amount of items in the world wide web preselections and suggestions of items become more and more of importance. These recommendations
+ support for instance the discovery of pruchasable objects, of watchable movies or
+ interesting news.\\
+The overall goal is to detect similar items of interest for a user with the help of informations about the user itself, the items and other participants. 
+\cite{WebScience}\\
+Different approaches to calculate such recommendations exist. So called Collaborative Filtering methods try to give predictions for a user based on the personal preferences and the preferences of others.  
+An example for Collaborative Filtering Methods based on the preferences of users is the calculation of cosine similarity. With its help a movie recommender system will be constructed in this survey, which allows to predict ratings of a user for movies based on existing ratings. As fundamental data the free available data set of GroupLens with 100k ratings was used. \cite{grouplens}
+ 
 
-\section{Preliminaries}
-For my project I use a mysql database in a Python environment. To run the file it might be necessary to download and install the local mysql server (\url{}) and a bridge which allows Python to connect with the database (\url{}). Furtheron Python should be usable.\\
-To execute the programm the data file u.data should be placed in the same directory as recommender.py and the mysql server settings ( host, username, password, database ) in the recommender.py file should be adapted.\\
-usable variables:
+\section{Methodology}
 
-\section{Tasks}
-\subsection{Task 1}
-k=3
+The cosine similarity calculates with a dot product (1) the cosine of the angle between two vectors.
+The angle indicates if two vectors incline in the same direction.
+\begin{equation}
+cos(A, B) = \frac { A \cdot  B}{|| A|| \cdot || B||}
+\end{equation}
+The resulting value intermediates between -1 and 1 which indicates the similarity between two items. A value of -1 predicts an opposition or an unsimilarity. A prediction of 1 on the other hand implies the highest possible similarity: $cos(0) = 1$. 
+In case of the movie recommender system a vector consists of all ratings of a user. To emphazise the tendencies of a user to give for example often high or low ratings these ratings are subtracted by the average rating of the user accordingly. This approach is called adjusted cosine similarity.  
+This results in the following equation for the two movies $i$ and $j$:
+\begin{equation}
+sim (i,j) = 
+\frac{
+	\displaystyle\sum_{u \in U} (R_u,_i - \overline{R_u})(R_u,_j - \overline{R_u})
+}
+{
+	\sqrt{ \displaystyle\sum_{u \in U} (R_u,_i - \overline{R_u})^2} 
+	* \sqrt{\displaystyle\sum_{u \in U} (R_u,_j - \overline{R_u})^2}
+}
+\end{equation}
+$ i,j$ ... the two movies to compare \\
+$\overline{R}(u)$ ... the average over all ratings of user $u$ \\
+$R_u,_i$ , $R_u,_j$  ... ratings given by user $u$ to items $i$ and $j$\\
+$U$ ... the set of users which rated both items $i$ and $j$\\
+To obtain the step from model to prediction a weighthed sum is used by multiplying the ratings of already rated films of a user with the corresponding cosine similarity. Furtheron this sum is divided by the sum of the absolute simlarity. \cite{sarwar}
+\begin{equation}
+P_u,_i = \frac{
+\displaystyle\sum_{n \in N}(R_u,_n*sim(i,n))
+}{
+\displaystyle\sum_{n \in N}|sim(i,n)|
+}
+\end{equation}
 
+************* MSRE?
+
+For better studies a value $k$ was introduced. $k$ ratings of the data set for each user were taken and transferred to a new set, called the test set. The remaining set forms the training set.
+
+
+\section{About the Implementation}
+For my project I use a local MySQL database in combination with a Python programm. To run the recommender.py file it might be necessary to download and install the MySQL server (\url{https://dev.mysql.com/downloads/installer/}) and a connector to allow Python the communication with the database (\url{https://dev.mysql.com/downloads/connector/python/2.1.html}). Furtheron Python should be installed.\\
+To execute the programm the data file u.data should be placed in the same directory as recommender.py and the MySQL server settings for host, username, password, database in the recommender.py file should be adapted.\\
+The file loads the data of the u.data file into the database. To avoid repeated creation and deletion of the database tables the value of the variable requireDBinit ( line 4) should be set to False. \\
+The request happen through the functions $calcCosSimilarity()$ and $calcPrediction()$ in the main functions. They are implemented with extensive SQL statements to receive the calculated values from the database. \\
+The mentioned value k is reflected in the variable testSetK.\\
+
+
+\section{Findings}
 
 cosine similarity is a collaborative filtering method, dependency on ratings of other users
+The use of the variable k allows to work with data sets of different sizes, for example with very small data set with k = 3. Only 3 ratings per user in calculation.
 -> recommendations based on insufficient ratings (here only 3)
 -> for a recommendation are pairs of the requested movies voted by the same user required.
 -> unlikely with a k of 3 rating to get such a pair -> calculation of similarity is nonense because alsways similar (have a high cosine similarity)
 -> as well as a lack of higher variety in ratings which relativize perculiar similarity ratings
 
--> similarity is 1, unsimilarity -1
+******* kann nenner 0 werden?
 
 1. Examining the results
 -> For comparison we use the film with movieID 1: "ToyStory", it is a childrens adventure movie, and the second movie with movieID 2: "GoldenEye", which is a mature action and thriller movie.
@@ -62,32 +103,32 @@ restricting the datasets to the first k entries for each user has affects on ...
 
 
 
-\subsection{Task 2}
+\section{Discussion}
+We encounter here the problem, that
+
 cold start problem
 
-\subsection{Task 3}
-scaling possible? does my solution scale?
-
+Does my solution scale?
 \begin{enumerate}
 	\item \textbf{Using MySQL:} \\
 	\begin{enumerate}
 		\item 	
-		mysql database can work with many entries, slower with bigger size of data sets
-		new calculation of average of all ratings of each user always necessary: more users/movies/ratings-> more data to process
-		alternatives: hadoop? better PC
+mysql database can work with many entries, slower with bigger size of data sets new calculation of average of all ratings of each user always necessary: more users/movies/ratings-> more data to process
+alternatives: hadoop? better PC
 		
-		\item use of MEDIUMINT with 	8388607 different primary key entries possible
-		instead use of BIGINT with 9223372036854775807 different primary keys applicable for more movies
-		or unsigned BIGINT with 18446744073709551615.
+\item use of MEDIUMINT with 	8388607 different primary key entries possible
+instead use of BIGINT with 9223372036854775807 different primary keys applicable for more movies
+or unsigned BIGINT with 18446744073709551615.
 		
-		\item db is build in beginning of programm
-		possible to turn off and to calculate with the already existing DB
-		in case of changes on the db initialisation algorithm mandatory to turn on.
+\item db is build in beginning of programm
+possible to turn off and to calculate with the already existing DB
+in case of changes on the db initialisation algorithm mandatory to turn on.
 		avoids unnecessary db accesses, more time effective
 		
 		\item addition of more data to the mysql library is easily possible. Use of the same algorith possible.
 		
-		\item hard to detect bugs in code or SQL statements while operating with DB and to verify the requests made. the impact is not easily detectable and temporary request are necessary to detect Changes in DB. With bigger DB might get even more confusing
+		\item hard to detect bugs in code or SQL statements while operating with DB and to verify the requests made. the impact is not easily detectable and temporary request are necessary to detect Changes in DB. With bigger DB might get even more confusing.
+		easy to break the whole code by chaging a line
 	\end{enumerate}	
 	
 	
@@ -99,13 +140,15 @@ scaling possible? does my solution scale?
 		\item holding huge variables in an object 
 	
 	
+	
 	\end{enumerate}		
 
 	
 \end{enumerate}
 
+\section{Conclusion}
 
 \bibliographystyle{alpha}
-\bibliography{handin} 
+\bibliography{task1} 
 
 \end{document}
