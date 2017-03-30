@@ -1,8 +1,9 @@
 import re
+import math
 import MySQLdb
 
-requireDBInit = False #True for first DB init
-testSetK = 0   # size of table test_votes
+requireDBInit = True #True for first DB init
+testSetK = 7   # size of table test_votes
 dataFile = "u.data"
 connection = MySQLdb.connect(
      host="localhost",  # your host, usually localhost
@@ -20,14 +21,13 @@ def main():
     else:
         print "work with existing DB"
 
-    print calcCosSimilarity(62, 66, "user_votes") #movie1ID, movie2ID, table
-    print calcPrediction(5, 62, "user_votes") #  userID, movieID, table
-
-
+    # test set (k) = "test_votes", training set (all - k) = "user_votes"
+    print calcRMSE("test_votes") # table
 
     #end db connection
     connection.commit()
     connection.close()
+
 
 def initDB():
     #deletes old tables
@@ -144,7 +144,7 @@ def calcCosSimilarity(movie1ID, movie2ID, table):
     if cos is not None:
         return cos[0]
     else:
-        print "no result"
+        return 0
 
 def calcPrediction(userID, movieID, table):
     query="Select movieID, rating from %s where userId=%s" %  (table, userID)
@@ -158,11 +158,31 @@ def calcPrediction(userID, movieID, table):
             numerator += line[1] * cos
             denominator += abs(cos)
 
-
     #normalisation
-    return round(numerator / denominator *2/5+3)
+    if numerator != 0 and denominator != 0:
+        return round(numerator / denominator *2/5+3)
+    else:
+        return 0
 
-def calcRMSE():
+def calcRMSE(table):
+    # get overall rating count
+    query = "SELECT count(*) FROM %s" % (table)
+    cursor.execute(query)
+    overallCount = cursor.fetchone()[0]
+    print overallCount
 
+    # calculate sum
+    query = "SELECT userID, movieID, rating FROM %s" % (table)
+    cursor.execute(query)
+    result = cursor.fetchall()
+    sum = 0.
+    for line in result:
+        prediction = calcPrediction(line[0],line[1],table)
+        if prediction != None and prediction != 0:
+            print (prediction, line[2])
+            sum += math.pow(prediction - line[2] , 2)
+
+
+    return math.sqrt( 1./ overallCount * sum)
 
 main()
