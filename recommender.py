@@ -3,7 +3,7 @@ import math
 import MySQLdb
 
 requireDBInit = True #True for first DB init
-testSetK = 7   # size of table test_votes
+testSetK = 0   # size of table test_votes
 dataFile = "u.data"
 connection = MySQLdb.connect(
      host="localhost",  # your host, usually localhost
@@ -22,7 +22,9 @@ def main():
         print "work with existing DB"
 
     # test set (k) = "test_votes", training set (all - k) = "user_votes"
-    print calcRMSE("test_votes") # table
+
+    #print calcCosSimilarity(144, 226, "user_votes")
+    print calcRMSE("user_votes") # table
 
     #end db connection
     connection.commit()

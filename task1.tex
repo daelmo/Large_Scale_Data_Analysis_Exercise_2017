@@ -16,7 +16,7 @@ The overall goal is to detect similar items of interest for a user with the help
 \cite{WebScience}\\
 Different approaches to calculate such recommendations exist. So called Collaborative Filtering methods try to give predictions for a user based on collected data about the personal preferences with regard to the preferences of others. \\
 \\
-An approach for Collaborative Filtering Method is the calculation of cosine similarity. With its help a movie recommender system will be constructed in this survey, which allows to predict ratings of a user for movies based on existing user ratings. As fundamental data the free available data set of GroupLens with 100k ratings was used. \cite{grouplens}
+An approach for a Collaborative Filtering Method is the calculation of cosine similarity. With its help a movie recommender system will be constructed in this survey, which allows to predict ratings of a user for movies based on existing user ratings. As fundamental data the free available data set of GroupLens with 100k ratings was used. \cite{grouplens}
  
 
 \section{Methodology}
@@ -26,9 +26,9 @@ The angle indicates if two vectors incline in the same direction.
 \begin{equation}
 cos(A, B) = \frac { A \cdot  B}{|| A|| \cdot || B||}
 \end{equation}
-The resulting value intermediates between -1 and 1 which indicates the similarity between two items. A value of -1 predicts an opposition or an unsimilarity. A prediction of 1 on the other hand implies the highest possible similarity: $cos(0) = 1$. \\
+The resulting value intermediates between -1 and 1. A value of -1 predicts an opposition or an unsimilarity. A prediction of 1 on the other hand implies the highest possible similarity: $cos(0) = 1$. \\
 \\
-In case of the movie recommender system a vector consists of all ratings of a user. To emphazise the tendencies of a user to give for example often high or low ratings these ratings are subtracted by the average rating of the user accordingly. This approach is called adjusted cosine similarity.\\  
+In case of the movie recommender system a vector consists of all ratings of a user. To emphazise the tendencies of a user to give for example often high or low ratings. These ratings are subtracted by the average rating of the user accordingly. This approach is called adjusted cosine similarity.\\  
 This results in the following equation for the two movies $i$ and $j$:\\
 \begin{equation}
 sim (i,j) = 
@@ -81,7 +81,7 @@ It can only be used for models using the same unit, therefore the normalisation 
 The RMSE value is the square root of the variance of the residuals so the lower the RMSE value, the better is the fit of prediction and the actual value. \cite{rsme}\\
 \\
 For better studies a value $k$ was introduced. $k$ ratings of the data set for each user were taken and transferred to a new set, called the test set. The remaining set forms the training set. \\ 
-Through this procedure the effect of different sizes of the data set can be examined.
+Through this step the effect of different sizes of the data set can be examined.
 
 
 \section{About the Implementation}
@@ -104,7 +104,7 @@ The cosine similarity is a collaborative filtering method so a dependency on the
 The use of the variable k allows to work with data sets of different sizes. \\
 A $k$ of 3 would for example create a table consisting of the first 3 ratings of each user. \\
 For comparison the film with movieID 1: "ToyStory", it is a childrens adventure movie, and the second movie with movieID 2: "GoldenEye", which is a mature action and thriller movie, were used.\\
-For comparison two similar movies , "Die Hard" and "Die Hard 2" of the database were chosen, which are suspected as alike.
+Furtheron two similar movies , with movieID 144: "Die Hard" and movieID:226 "Die Hard 2" were chosen, which are suspected as alike.
 
 \begin{tabular}{c|cc}
 \textbf{k} & \textbf{similarity( 1 , 2 )} & \textbf{similarity ( 144, 226  )} \\ \hline
@@ -143,11 +143,13 @@ Dependent on the development of the cosine similarity the RMSE value changes as 
 	9 &  1,3665\\
 	\textbf{10} & 1.3481 \\
 	20 &  1.2585\\
-	* & \\
+	... & ... \\
 \end{tabular} \\
 \\
 The bigger the data set becomes the smaller the calculated RMSE value becomes. The RMSE value is the square root of the average deviation of all predictions and actual ratings. It's decrease indicates better predictions of the recommender system.\\
-This decrease of deviation can be explained by the growing amount of ratings on which the calculation is based. This increase improves the prediction and reduces the deviation.\\   
+This decrease of deviation can be explained by the growing amount of ratings on which the calculation is based.\\   
+\\
+All in all the here applied method of using a $k$ value shows that more training data improves the cosine similarity calculations as the predictions of the recommender system.	 
 
 
 \section{Discussion}
@@ -158,22 +160,21 @@ The used formula construct of advanced cosine similarity, weighted sum and follo
 A growing amount of data should improve the predictions of the recommender system, because deviating ratings get relativized by the mass and more content for information extraction should be available.\\ 
 \\
 Adding new entries, which is mandatory for a growing data set, arises the problem of insufficient data to create predictions for these new items. A new movie can not be included in the system, when ratings for cosine similarity ratings are missing. This problem is the so called cold start problem of Collaborative Filtering.\\
-\\
-The most famous approach to tackle this problem is the combination of a Collaborative Filtering method like cosine similarity with prediction and Content Based Matching methods. Content Based Matching allowes by regarding the content similarity of a new item to rated items in the user preference profile the calculation of a prediction. This mentioned user preference profile could consist of items the user sighted before. If all these informations are missing the application of an initial profile with standard recommendations might be useful.\\
+The most famous approach to tackle this problem is the combination of a Collaborative Filtering method and a Content Based Matching methods. Content Based Matching allowes the calculation of a prediction by regarding the content similarity of a new item to rated items in the user preference profile. The latter could for example consist of items the user sighted before. If all these informations are missing the application of an initial profile with standard recommendations might be useful.\\
 \\
 Furtheron the problem of data sparsity should be considered. Not only the amount of items or users should grow, but the amount of ratings of users for the movie items. These ratings require engagement of the user and maintainer of the recommender system alone is the service not improvable.\\
 Of course the point of required computation time should be considered. The more data is available, the more calculations are necessary.\\
 \\
-The SQL-based implementation is capable of more data entries. The request query for the cosine similarity remains with the growing amount of entries the same. As a database it is dimensioned for bigger amounts of data, the only limiting factor is the primary key for the table, which supports up to 18446744073709551615 entries. \cite{sql} The access latency might become higher with the size of the data set.\\
+The SQL-based implementation is capable of more data entries. The request query for the cosine similarity remains with the growing amount of entries the same. As a database it is dimensioned for bigger amounts of data, the only limiting factor is the primary key for the table, which supports up to 18446744073709551615 entries. \cite{sql} The access latency becomes higher with the size of the data set.\\
 \\
 A huge disadvantage of SQL is the missing transparency. It is hard to detect the impact of the complex statements on the tables and to verify the request made. With more entries in the database it might become even more confusing.\\
 \\
 The Python part of the implementation is not optimized for the work with a higher amount of data. A vectorisation could be used for more efficient and faster calculations. 
 
 \section{Conclusion}
-The combination of cosine similarity and a weighted sum prediction with applied normalisation is a solution which could be applied in practice. \\
+The combination of cosine similarity and a weighted sum prediction was successfully implemented. \\
 The survey on the size of the mandatory data set has shown that advanced cosine similarity and the following prediction work good in combination with the procedure of weighted sum. This approach is already common for recommender systems.\\
-The implemented recommender system is functioning, but not efficient. Furtheron does it not handle the cold start problem of recommender systems. A hybrid approach of Collective Filterings methods and Content Matchings methods could therefore be used.\\ 
+The implemented recommender system is not efficient. Furtheron does it not handle the cold start problem of recommender systems. A hybrid approach of Collective Filterings methods and Content Matchings methods could therefore be used.\\ 
 
 
 \bibliographystyle{alpha}
