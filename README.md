@@ -4,7 +4,7 @@ Exercises in Python of the lecture Larce Scale Data Analysis at Copenhagen Unive
 
 ## Task 1 : Movie Recommender 
 
-Movies and existing ratings were loaded from an IMDB database. Then, cosine similarity and weighted sum were used to predict a movies rating in regard to a users preferences based his existing ratings. For validation, I used RSME to evaluate the quality of the predictions. 
+Movies and existing ratings were loaded from an IMDB database. Then, cosine similarity and weighted sum were used to predict a movies rating in regard to a users prior ratings. For validation, I used RSME to evaluate the quality of the predictions. 
 
 ## Task 2 : Tweet Stance Detector
 
